@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CERA+ | Cyber Emergency Response Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red-900:#501313;--red-800:#791F1F;--red-700:#A32D2D;--red-600:#c03535;
+  --red-500:#E24B4A;--red-400:#F09595;--red-100:#F7C1C1;--red-50:#FCEBEB;
+  --gray-900:#2C2C2A;--gray-800:#3a3a38;--gray-700:#5F5E5A;--gray-500:#888780;
+  --gray-300:#c8c6bc;--gray-200:#B4B2A9;--gray-100:#D3D1C7;--gray-50:#F1EFE8;
+  --white:#FFFFFF;
+  --font-display:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;
+  --green:#639922;--amber:#BA7517;
+}
+body{font-family:var(--font-body);background:var(--gray-900);color:var(--white);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* ══ LANGUAGE SCREEN ══ */
+#lang-screen{align-items:center;justify-content:center;background:var(--gray-900);padding:2rem;position:relative;overflow:hidden;}
+#lang-screen::before{content:'';position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(226,75,74,.18) 0%,transparent 70%);pointer-events:none;}
+.lang-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:3rem 2.5rem;max-width:520px;width:100%;text-align:center;position:relative;z-index:1;}
+.logo-badge{display:inline-flex;align-items:center;gap:10px;background:var(--red-700);border-radius:50px;padding:8px 20px;margin-bottom:2rem;}
+.logo-badge .dot{width:10px;height:10px;background:#fff;border-radius:50%;animation:pulse-dot 1.4s infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
+.logo-badge span{font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:.05em;color:#fff;}
+.lang-card h1{font-family:var(--font-display);font-size:clamp(1.6rem,5vw,2.2rem);font-weight:800;line-height:1.2;margin-bottom:.75rem;color:#fff;}
+.lang-card p{color:var(--gray-200);font-size:15px;line-height:1.6;margin-bottom:2.5rem;}
+.lang-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.lang-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:1.4rem 1rem;cursor:pointer;transition:all .2s;text-align:center;color:#fff;}
+.lang-btn:hover{background:var(--red-700);border-color:var(--red-500);transform:translateY(-2px);}
+.lang-btn .lang-name{font-family:var(--font-display);font-size:1.2rem;font-weight:700;display:block;margin-bottom:4px;}
+.lang-btn .lang-sub{font-size:12px;color:var(--gray-200);display:block;}
+.lang-btn:hover .lang-sub{color:rgba(255,255,255,.7);}
+
+/* ══ MAIN SCREEN ══ */
+#main-screen{flex-direction:column;background:var(--gray-900);}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;gap:8px;}
+.topbar-logo{font-family:var(--font-display);font-weight:800;font-size:1.2rem;color:#fff;display:flex;align-items:center;gap:8px;}
+.topbar-logo .live-dot{width:8px;height:8px;background:var(--red-500);border-radius:50%;animation:pulse-dot 1.4s infinite;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.topbar-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 12px;color:var(--gray-200);font-size:12px;cursor:pointer;font-family:var(--font-body);transition:all .2s;white-space:nowrap;}
+.topbar-btn:hover{background:rgba(255,255,255,.12);color:#fff;}
+.topbar-btn.active-tab{background:var(--red-700);border-color:var(--red-500);color:#fff;}
+
+/* ── TABS ── */
+.tab-content{display:none;flex:1;flex-direction:column;overflow-y:auto;}
+.tab-content.active{display:flex;}
+
+/* ── MAIN SCROLL ── */
+.main-scroll{flex:1;overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1.5rem;}
+.main-center{max-width:680px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:1.5rem;}
+
+/* ATTACK BTN */
+.attack-btn{width:100%;background:var(--red-700);border:none;border-radius:16px;padding:1.5rem 2rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .2s;position:relative;overflow:hidden;}
+.attack-btn:hover{background:var(--red-600);transform:translateY(-1px);}
+.attack-btn-left{text-align:left;}
+.attack-btn-label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);font-weight:500;display:block;margin-bottom:4px;}
+.attack-btn-main{font-family:var(--font-display);font-size:clamp(1.2rem,4vw,1.6rem);font-weight:800;color:#fff;display:block;}
+.attack-btn-icon{width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.attack-btn-icon svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;}
+.section-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-500);font-weight:500;margin-bottom:.75rem;}
+.attack-types{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;}
+.type-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.2rem 1rem;cursor:pointer;transition:all .2s;text-align:center;}
+.type-card:hover{background:rgba(226,75,74,.12);border-color:var(--red-500);transform:translateY(-2px);}
+.type-card.selected{background:rgba(226,75,74,.18);border-color:var(--red-500);}
+.type-icon{width:44px;height:44px;background:rgba(255,255,255,.07);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;}
+.type-icon svg{width:22px;height:22px;fill:none;stroke:var(--red-400);stroke-width:1.8;stroke-linecap:round;}
+.type-card.selected .type-icon{background:rgba(226,75,74,.25);}
+.type-card.selected .type-icon svg{stroke:var(--red-100);}
+.type-name{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--gray-100);display:block;margin-bottom:3px;}
+.type-card.selected .type-name{color:#fff;}
+.type-desc{font-size:11px;color:var(--gray-500);display:block;line-height:1.4;}
+
+/* TRIAGE */
+.triage-panel{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.5rem;display:none;}
+.triage-panel.active{display:block;}
+.triage-panel h3{font-family:var(--font-display);font-size:1rem;font-weight:700;color:#fff;margin-bottom:1.25rem;}
+.triage-questions{display:flex;flex-direction:column;gap:14px;}
+.triage-q{display:flex;flex-direction:column;gap:8px;}
+.triage-q label{font-size:13px;color:var(--gray-200);font-weight:500;}
+.triage-options{display:flex;flex-wrap:wrap;gap:8px;}
+.triage-opt{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 14px;font-size:13px;color:var(--gray-100);cursor:pointer;transition:all .15s;font-family:var(--font-body);}
+.triage-opt:hover{background:rgba(226,75,74,.15);border-color:var(--red-500);color:#fff;}
+.triage-opt.selected{background:var(--red-700);border-color:var(--red-500);color:#fff;}
+.triage-submit{margin-top:1.25rem;width:100%;background:var(--red-700);border:none;border-radius:10px;padding:.85rem;font-family:var(--font-display);font-size:15px;font-weight:700;color:#fff;cursor:pointer;transition:all .2s;}
+.triage-submit:hover{background:var(--red-600);}
+.triage-submit:disabled{opacity:.4;cursor:not-allowed;}
+
+/* RECOVERY */
+.recovery-panel{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.5rem;display:none;}
+.recovery-panel.active{display:block;}
+.recovery-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;}
+.recovery-header h3{font-family:var(--font-display);font-size:1rem;font-weight:700;color:#fff;}
+.severity-badge{font-size:11px;font-weight:600;padding:4px 12px;border-radius:50px;letter-spacing:.06em;text-transform:uppercase;}
+.severity-high{background:rgba(226,75,74,.25);color:var(--red-100);border:1px solid var(--red-500);}
+.severity-medium{background:rgba(239,159,39,.2);color:#FAC775;border:1px solid #EF9F27;}
+.severity-low{background:rgba(99,153,34,.2);color:#C0DD97;border:1px solid #639922;}
+.loading-msg{display:flex;align-items:center;gap:12px;padding:1.5rem 0;color:var(--gray-500);font-size:14px;}
+.spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,.1);border-top-color:var(--red-500);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.steps-list{display:flex;flex-direction:column;gap:12px;}
+.step-item{display:flex;gap:14px;align-items:flex-start;padding:1rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;transition:all .2s;}
+.step-item.done{background:rgba(99,153,34,.08);border-color:rgba(99,153,34,.3);}
+.step-num{width:28px;height:28px;background:rgba(226,75,74,.2);border:1px solid var(--red-500);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--red-100);flex-shrink:0;transition:all .2s;}
+.step-item.done .step-num{background:rgba(99,153,34,.25);border-color:#639922;color:#C0DD97;}
+.step-content{flex:1;}
+.step-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;}
+.step-detail{font-size:13px;color:var(--gray-200);line-height:1.5;}
+.step-check{background:none;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--gray-300);cursor:pointer;font-family:var(--font-body);transition:all .15s;flex-shrink:0;white-space:nowrap;}
+.step-check:hover{border-color:#639922;color:#C0DD97;}
+.step-item.done .step-check{background:rgba(99,153,34,.15);border-color:#639922;color:#C0DD97;}
+.progress-bar-wrap{margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,.07);}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--gray-500);margin-bottom:8px;}
+.progress-track{background:rgba(255,255,255,.08);border-radius:4px;height:6px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--red-500);border-radius:4px;transition:width .4s ease;width:0%;}
+.script-box{margin-top:1.25rem;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--red-500);border-radius:10px;padding:1rem 1.25rem;}
+.script-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--red-400);margin-bottom:.75rem;font-weight:600;}
+.script-text{font-size:13px;color:var(--gray-100);line-height:1.7;white-space:pre-wrap;}
+.copy-btn{margin-top:.75rem;background:none;border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:5px 14px;font-size:12px;color:var(--gray-200);cursor:pointer;font-family:var(--font-body);transition:all .15s;}
+.copy-btn:hover{border-color:var(--red-400);color:#fff;}
+
+/* EVIDENCE */
+.evidence-panel{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.5rem;display:none;}
+.evidence-panel.active{display:block;}
+.evidence-panel h3{font-family:var(--font-display);font-size:1rem;font-weight:700;color:#fff;margin-bottom:.5rem;}
+.evidence-panel p{font-size:13px;color:var(--gray-500);margin-bottom:1rem;}
+.evidence-textarea{width:100%;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.85rem 1rem;font-size:13px;color:var(--gray-100);font-family:var(--font-body);resize:vertical;min-height:80px;outline:none;transition:border-color .2s;}
+.evidence-textarea:focus{border-color:var(--red-500);}
+.evidence-textarea::placeholder{color:var(--gray-700);}
+.evidence-save-btn{margin-top:.75rem;background:rgba(226,75,74,.15);border:1px solid var(--red-500);border-radius:8px;padding:7px 18px;font-size:13px;color:var(--red-100);cursor:pointer;font-family:var(--font-body);font-weight:500;transition:all .15s;}
+.evidence-save-btn:hover{background:rgba(226,75,74,.3);}
+.evidence-list{margin-top:1rem;display:flex;flex-direction:column;gap:8px;}
+.evidence-item{background:rgba(0,0,0,.2);border-radius:8px;padding:.75rem 1rem;font-size:12px;color:var(--gray-200);border-left:3px solid var(--red-700);}
+.evidence-item .ev-time{color:var(--gray-500);font-size:11px;margin-top:3px;}
+
+/* STATUS BAR */
+.status-bar{padding:.75rem 1.5rem;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:1rem;flex-shrink:0;flex-wrap:wrap;}
+.status-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray-500);}
+.status-dot{width:6px;height:6px;border-radius:50%;}
+.status-dot.online{background:#639922;}
+.status-dot.anon{background:var(--red-500);}
+.reset-btn{background:none;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 14px;font-size:12px;color:var(--gray-500);cursor:pointer;font-family:var(--font-body);transition:all .15s;margin-left:auto;}
+.reset-btn:hover{border-color:var(--red-500);color:var(--red-100);}
+
+/* ══ HISTORY TAB ══ */
+.history-scroll{flex:1;overflow-y:auto;padding:1.5rem;}
+.history-center{max-width:680px;width:100%;margin:0 auto;}
+.history-header{margin-bottom:1.5rem;}
+.history-header h2{font-family:var(--font-display);font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:.3rem;}
+.history-header p{font-size:13px;color:var(--gray-500);}
+.history-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem;}
+.h-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1rem;text-align:center;}
+.h-stat-num{font-family:var(--font-display);font-size:1.8rem;font-weight:800;color:var(--red-400);display:block;}
+.h-stat-label{font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:.08em;}
+.history-empty{text-align:center;padding:3rem 1rem;color:var(--gray-500);}
+.history-empty svg{width:48px;height:48px;stroke:var(--gray-700);fill:none;stroke-width:1.5;margin:0 auto 1rem;display:block;}
+.history-empty p{font-size:14px;}
+.session-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.25rem;margin-bottom:12px;cursor:pointer;transition:all .2s;}
+.session-card:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.15);}
+.session-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;flex-wrap:wrap;gap:.5rem;}
+.session-type{font-family:var(--font-display);font-size:14px;font-weight:700;color:#fff;}
+.session-date{font-size:11px;color:var(--gray-500);}
+.session-meta{display:flex;gap:8px;flex-wrap:wrap;}
+.session-tag{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.1);color:var(--gray-300);}
+.session-tag.sev-high{background:rgba(226,75,74,.15);border-color:var(--red-500);color:var(--red-100);}
+.session-tag.sev-med{background:rgba(239,159,39,.1);border-color:#EF9F27;color:#FAC775;}
+.session-tag.sev-low{background:rgba(99,153,34,.1);border-color:#639922;color:#C0DD97;}
+.session-steps{font-size:12px;color:var(--gray-500);margin-top:.5rem;}
+.session-detail{display:none;margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.07);}
+.session-detail.open{display:block;}
+.session-detail-step{font-size:12px;color:var(--gray-200);padding:4px 0;padding-left:1rem;border-left:2px solid var(--red-700);margin-bottom:6px;}
+.clear-history-btn{background:none;border:1px solid rgba(226,75,74,.3);border-radius:8px;padding:7px 16px;font-size:12px;color:var(--red-400);cursor:pointer;font-family:var(--font-body);transition:all .15s;margin-top:.5rem;}
+.clear-history-btn:hover{background:rgba(226,75,74,.1);}
+
+/* ══ QUIZ TAB ══ */
+.quiz-scroll{flex:1;overflow-y:auto;padding:1.5rem;}
+.quiz-center{max-width:680px;width:100%;margin:0 auto;}
+.quiz-header{margin-bottom:1.5rem;}
+.quiz-header h2{font-family:var(--font-display);font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:.3rem;}
+.quiz-header p{font-size:13px;color:var(--gray-500);}
+.quiz-categories{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:1.5rem;}
+.quiz-cat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1rem;cursor:pointer;transition:all .2s;text-align:center;}
+.quiz-cat:hover{background:rgba(226,75,74,.1);border-color:var(--red-500);}
+.quiz-cat.active-cat{background:rgba(226,75,74,.18);border-color:var(--red-500);}
+.quiz-cat svg{width:28px;height:28px;fill:none;stroke:var(--red-400);stroke-width:1.8;stroke-linecap:round;margin:0 auto .5rem;display:block;}
+.quiz-cat-name{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--gray-100);}
+.quiz-area{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.5rem;}
+.quiz-q-num{font-size:11px;color:var(--gray-500);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.75rem;}
+.quiz-question{font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:1.25rem;line-height:1.4;}
+.quiz-options{display:flex;flex-direction:column;gap:8px;margin-bottom:1.25rem;}
+.quiz-opt{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.85rem 1rem;font-size:14px;color:var(--gray-100);cursor:pointer;transition:all .15s;text-align:left;font-family:var(--font-body);}
+.quiz-opt:hover:not(:disabled){background:rgba(226,75,74,.1);border-color:var(--red-500);color:#fff;}
+.quiz-opt.correct{background:rgba(99,153,34,.2);border-color:#639922;color:#C0DD97;}
+.quiz-opt.wrong{background:rgba(226,75,74,.2);border-color:var(--red-500);color:var(--red-100);}
+.quiz-opt:disabled{cursor:default;}
+.quiz-explanation{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--green);border-radius:10px;padding:1rem;font-size:13px;color:var(--gray-200);line-height:1.6;display:none;}
+.quiz-explanation.show{display:block;}
+.quiz-nav{display:flex;align-items:center;justify-content:space-between;margin-top:1rem;gap:8px;}
+.quiz-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:.6rem 1.4rem;font-size:13px;color:#fff;cursor:pointer;font-family:var(--font-display);font-weight:700;transition:all .2s;}
+.quiz-btn:hover{background:var(--red-700);}
+.quiz-btn.primary{background:var(--red-700);border-color:var(--red-500);}
+.quiz-btn.primary:hover{background:var(--red-600);}
+.quiz-score-bar{margin-bottom:1rem;}
+.quiz-score-text{font-size:12px;color:var(--gray-500);margin-bottom:6px;display:flex;justify-content:space-between;}
+.quiz-score-track{background:rgba(255,255,255,.08);border-radius:4px;height:5px;overflow:hidden;}
+.quiz-score-fill{height:100%;background:var(--red-500);border-radius:4px;transition:width .4s;}
+.score-result{text-align:center;padding:1.5rem 0;}
+.score-result .big-score{font-family:var(--font-display);font-size:3rem;font-weight:800;color:var(--red-400);}
+.score-result p{color:var(--gray-200);font-size:14px;margin-top:.5rem;}
+
+/* ══ CHAT ══ */
+.chat-fab{position:fixed;bottom:80px;right:24px;width:56px;height:56px;background:var(--red-700);border:none;border-radius:50%;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(226,75,74,.4);z-index:100;transition:all .2s;}
+.chat-fab.visible{display:flex;}
+.chat-fab:hover{background:var(--red-600);transform:scale(1.08);}
+.chat-fab svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;}
+.chat-fab-close{display:none;}
+.chat-fab.open .chat-fab-icon{display:none;}
+.chat-fab.open .chat-fab-close{display:block;}
+.chat-fab-notif{position:absolute;top:-2px;right:-2px;width:14px;height:14px;background:#639922;border-radius:50%;border:2px solid var(--gray-900);animation:pulse-dot 1.4s infinite;}
+.chat-panel{position:fixed;bottom:148px;right:24px;width:320px;height:480px;background:#1e1e1c;border:1px solid rgba(255,255,255,.1);border-radius:20px;display:flex;flex-direction:column;z-index:99;box-shadow:0 8px 40px rgba(0,0,0,.5);transform:scale(.85) translateY(20px);opacity:0;pointer-events:none;transition:all .25s cubic-bezier(.34,1.56,.64,1);transform-origin:bottom right;overflow:hidden;}
+.chat-panel.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all;}
+.chat-panel-header{padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;flex-shrink:0;background:rgba(0,0,0,.2);}
+.chat-avatar{width:34px;height:34px;background:var(--red-700);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-display);font-weight:800;font-size:14px;color:#fff;}
+.chat-header-text{flex:1;}
+.chat-header-name{font-family:var(--font-display);font-size:13px;font-weight:700;color:#fff;display:block;}
+.chat-header-sub{font-size:11px;color:var(--gray-500);display:flex;align-items:center;gap:4px;}
+.chat-online-dot{width:5px;height:5px;background:#639922;border-radius:50%;display:inline-block;animation:pulse-dot 2s infinite;}
+.chat-messages{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;}
+.chat-msg{display:flex;flex-direction:column;gap:3px;max-width:88%;animation:msgIn .2s ease;}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.chat-msg.user{align-self:flex-end;}
+.chat-msg.bot{align-self:flex-start;}
+.chat-bubble{padding:9px 13px;border-radius:16px;font-size:13px;line-height:1.55;}
+.chat-msg.user .chat-bubble{background:var(--red-700);color:#fff;border-bottom-right-radius:4px;}
+.chat-msg.bot .chat-bubble{background:rgba(255,255,255,.07);color:var(--gray-100);border-bottom-left-radius:4px;border:1px solid rgba(255,255,255,.06);}
+.chat-time{font-size:10px;color:var(--gray-700);padding:0 4px;}
+.chat-msg.user .chat-time{text-align:right;}
+.chat-typing{align-self:flex-start;padding:9px 14px;background:rgba(255,255,255,.07);border-radius:16px;border-bottom-left-radius:4px;border:1px solid rgba(255,255,255,.06);display:none;}
+.chat-typing.visible{display:flex;gap:4px;align-items:center;}
+.typing-dot{width:6px;height:6px;background:var(--gray-500);border-radius:50%;animation:typingBounce 1.2s infinite;}
+.typing-dot:nth-child(2){animation-delay:.2s;}
+.typing-dot:nth-child(3){animation-delay:.4s;}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-5px);opacity:1;}}
+.chat-suggestions{padding:0 .75rem .6rem;display:flex;flex-wrap:wrap;gap:5px;flex-shrink:0;}
+.chat-suggestion{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--gray-200);cursor:pointer;font-family:var(--font-body);transition:all .15s;white-space:nowrap;}
+.chat-suggestion:hover{background:rgba(226,75,74,.15);border-color:var(--red-500);color:#fff;}
+.chat-input-row{padding:.75rem;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;}
+.chat-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 11px;font-size:13px;color:#fff;font-family:var(--font-body);outline:none;resize:none;min-height:36px;max-height:90px;line-height:1.4;transition:border-color .2s;}
+.chat-input:focus{border-color:var(--red-500);}
+.chat-input::placeholder{color:var(--gray-700);}
+.chat-send{width:36px;height:36px;background:var(--red-700);border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.chat-send:hover{background:var(--red-600);}
+.chat-send:disabled{opacity:.4;cursor:not-allowed;}
+.chat-send svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;}
+
+
+@media(max-width:480px){
+  .lang-buttons{grid-template-columns:1fr 1fr;}
+  .lang-btn:last-child{grid-column:span 2;}
+  .attack-types{grid-template-columns:1fr 1fr;}
+  .main-scroll{padding:1rem;}
+  .chat-panel{width:calc(100vw - 32px);right:16px;bottom:130px;}
+  .chat-fab{right:16px;bottom:70px;}
+  .history-stats{grid-template-columns:1fr 1fr;}
+  .topbar-btn{padding:5px 8px;font-size:11px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LANGUAGE SCREEN ══ -->
+<div class="screen active" id="lang-screen">
+  <div class="lang-card">
+    <div class="logo-badge"><div class="dot"></div><span>CERA+</span></div>
+    <h1>Cyber Emergency Response Assistant</h1>
+    <p>Choose your language to continue.<br/>आफ्नो भाषा छान्नुहोस्।</p>
+    <div class="lang-buttons">
+      <button class="lang-btn" onclick="selectLang('en')">
+        <span class="lang-name">English</span>
+        <span class="lang-sub">Continue in English</span>
+      </button>
+      <button class="lang-btn" onclick="selectLang('ne')">
+        <span class="lang-name">नेपाली</span>
+        <span class="lang-sub">नेपालीमा जारी राख्नुहोस्</span>
+      </button>
+      <button class="lang-btn" onclick="selectLang('ro')">
+        <span class="lang-name">Nepali</span>
+        <span class="lang-sub">Roman script ma</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN SCREEN ══ -->
+<div class="screen" id="main-screen">
+  <div class="topbar">
+    <div class="topbar-logo"><div class="live-dot"></div>CERA+</div>
+    <div class="topbar-right">
+      <button class="topbar-btn active-tab" onclick="switchTab('home')" id="tab-home" id="tab-home">🏠 <span id="tab-home-label">Home</span></button>
+      <button class="topbar-btn" onclick="switchTab('history')" id="tab-history">📋 <span id="tab-hist-label">History</span></button>
+      <button class="topbar-btn" onclick="switchTab('quiz')" id="tab-quiz">🎯 <span id="tab-quiz-label">Quiz</span></button>
+      <button class="topbar-btn" onclick="toggleLang()" id="lang-toggle-btn">🌐</button>
+    </div>
+  </div>
+
+  <!-- HOME TAB -->
+  <div class="tab-content active" id="tab-home-content">
+    <div class="main-scroll">
+    <div class="main-center">
+      <button class="attack-btn" onclick="onAttackClick()" id="attack-btn">
+        <div class="attack-btn-left">
+          <span class="attack-btn-label" id="btn-label">Emergency</span>
+          <span class="attack-btn-main" id="btn-main">I am under attack</span>
+        </div>
+        <div class="attack-btn-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+      </button>
+      <div id="type-section" style="display:none;">
+        <div class="section-label" id="type-label">What type of attack?</div>
+        <div class="attack-types" id="attack-types"></div>
+      </div>
+      <div class="triage-panel" id="triage-panel">
+        <h3 id="triage-title">Tell us what happened</h3>
+        <div class="triage-questions" id="triage-questions"></div>
+        <button class="triage-submit" id="triage-submit" onclick="submitTriage()" disabled>
+          <span id="triage-submit-label">Generate Recovery Plan</span>
+        </button>
+      </div>
+      <div class="recovery-panel" id="recovery-panel">
+        <div class="recovery-header">
+          <h3 id="recovery-title">Your Recovery Plan</h3>
+          <span class="severity-badge severity-high" id="severity-badge">High Severity</span>
+        </div>
+        <div id="recovery-body">
+          <div class="loading-msg"><div class="spinner"></div><span id="loading-text">Generating your personalised plan...</span></div>
+        </div>
+      </div>
+      <div class="evidence-panel" id="evidence-panel">
+        <h3 id="ev-title">Evidence Collection</h3>
+        <p id="ev-desc">Log everything now before it disappears.</p>
+        <textarea class="evidence-textarea" id="ev-input" placeholder="Describe what happened..."></textarea>
+        <div style="font-size:11px;color:var(--gray-700);margin-top:.5rem;" id="ev-meta">All evidence is stored locally and anonymously.</div>
+        <button class="evidence-save-btn" onclick="saveEvidence()" id="ev-save-btn">Save Evidence Entry</button>
+        <div class="evidence-list" id="evidence-list"></div>
+      </div>
+    </div>
+    </div>
+    <div class="status-bar">
+      <div class="status-item"><div class="status-dot online"></div><span id="status-online">System online</span></div>
+      <div class="status-item"><div class="status-dot anon"></div><span id="status-anon">Anonymous session</span></div>
+      <button class="reset-btn" onclick="resetAll()" id="reset-btn">Start over</button>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div class="tab-content" id="tab-history-content">
+    <div class="history-scroll">
+    <div class="history-center">
+      <div class="history-header">
+        <h2 id="hist-title">Your Activity History</h2>
+        <p id="hist-desc">A record of all your sessions on this device.</p>
+      </div>
+      <div class="history-stats">
+        <div class="h-stat"><span class="h-stat-num" id="stat-sessions">0</span><span class="h-stat-label" id="stat-s-label">Sessions</span></div>
+        <div class="h-stat"><span class="h-stat-num" id="stat-steps">0</span><span class="h-stat-label" id="stat-st-label">Steps Done</span></div>
+        <div class="h-stat"><span class="h-stat-num" id="stat-quiz">0%</span><span class="h-stat-label" id="stat-q-label">Quiz Score</span></div>
+      </div>
+      <div id="history-list"></div>
+      <button class="clear-history-btn" onclick="clearHistory()" id="clear-hist-btn">Clear all history</button>
+    </div>
+    </div>
+  </div>
+
+  <!-- QUIZ TAB -->
+  <div class="tab-content" id="tab-quiz-content">
+    <div class="quiz-scroll">
+    <div class="quiz-center">
+      <div class="quiz-header">
+        <h2 id="quiz-main-title">Cyber Safety Quiz</h2>
+        <p id="quiz-sub">Test your knowledge. Learn how to protect yourself.</p>
+      </div>
+      <div class="quiz-categories" id="quiz-categories"></div>
+      <div class="quiz-area" id="quiz-area" style="display:none;"></div>
+    </div>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <button class="chat-fab" id="chat-fab" onclick="toggleChat()">
+    <span class="chat-fab-notif" id="chat-notif"></span>
+    <svg class="chat-fab-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <svg class="chat-fab-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div class="chat-panel" id="chat-panel">
+    <div class="chat-panel-header">
+      <div class="chat-avatar">C+</div>
+      <div class="chat-header-text">
+        <span class="chat-header-name">CERA+ Advisor</span>
+        <span class="chat-header-sub"><span class="chat-online-dot"></span><span id="chat-status-text">Ready to help</span></span>
+      </div>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-typing" id="chat-typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+    </div>
+    <div class="chat-suggestions">
+      <button class="chat-suggestion" onclick="sendSuggestion(this)" id="sug1">What do I do first?</button>
+      <button class="chat-suggestion" onclick="sendSuggestion(this)" id="sug2">Call Cyber Bureau?</button>
+      <button class="chat-suggestion" onclick="sendSuggestion(this)" id="sug3">Is my device safe?</button>
+    </div>
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chat-input" placeholder="Ask me anything..." rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea>
+      <button class="chat-send" id="chat-send-btn" onclick="sendChat()">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let lang = 'en';
+let selectedType = null;
+let triageAnswers = {};
+let evidenceLog = [];
+let steps = [];
+let currentPlan = null;
+let sessionHistory = JSON.parse(localStorage.getItem('cera_history') || '[]');
+let quizScores = JSON.parse(localStorage.getItem('cera_quiz_scores') || '{}');
+const GROQ_API_KEY = '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';
+let currentQuiz = { category: null, questions: [], idx: 0, score: 0, answered: false };
+
+
+// ── TRANSLATIONS ──
+const T = {
+  en: {
+    btnLabel:'Emergency', btnMain:'I am under attack',
+    typeLabel:'What type of attack are you facing?',
+    triageTitle:'Tell us what happened',
+    triageSubmit:'Generate Recovery Plan',
+    recoveryTitle:'Your Recovery Plan',
+    loadingText:'Generating your personalised plan...',
+    evTitle:'Evidence Collection',
+    evDesc:'Log everything now before it disappears. Times are added automatically.',
+    evMeta:'All evidence is saved only on your device, anonymously.',
+    evSave:'Save Evidence Entry',
+    evPlaceholder:'Describe what happened, paste suspicious links, note times...',
+    statusOnline:'System online', statusAnon:'Anonymous session',
+    resetBtn:'Start over', langToggle:'🌐 NE',
+    markDone:'Mark done', done:'Done ✓',
+    copyBtn:'Copy script', copied:'Copied!',
+    scriptLabel:'What to say when you call for help',
+    severityHigh:'High Severity', severityMed:'Medium Severity', severityLow:'Low Severity',
+    progress:'Recovery progress', stepsDone:'steps completed',
+    histTitle:'Your Activity History', histDesc:'A record of all your sessions on this device.',
+    histEmpty:'No sessions yet. Press the red button when you need help.',
+    clearHist:'Clear all history',
+    statS:'Sessions', statSt:'Steps Done', statQ:'Quiz Score',
+    quizTitle:'Cyber Safety Quiz', quizSub:'Test your knowledge. Learn how to protect yourself.',
+    quizCorrect:'✓ Correct!', quizWrong:'✗ Wrong',
+    quizNext:'Next question', quizFinish:'See my score', quizRestart:'Try again',
+    noKey:'No API key set. Please tap ⚙️ to add your free Gemini key.',
+    tabHome:'Home', tabHist:'History', tabQuiz:'Quiz',
+    chatSug:['What do I do first?','Call Cyber Bureau?','Is my device safe?'],
+    attackTypes:[
+      {key:'hacking',name:'Account Hacked',desc:'Someone took over your account',icon:'lock'},
+      {key:'phishing',name:'Phishing / Scam',desc:'Fake link or message',icon:'hook'},
+      {key:'malware',name:'Virus / Malware',desc:'Your device is infected',icon:'bug'},
+      {key:'blackmail',name:'Blackmail',desc:'Threats or extortion',icon:'shield'},
+      {key:'financial',name:'Financial Fraud',desc:'Money was taken',icon:'card'},
+      {key:'other',name:'Other Attack',desc:'Something else happened',icon:'alert'},
+    ],
+    triage:{
+      hacking:[
+        {id:'q1',label:'Which account was hacked?',opts:['Facebook','Instagram','Gmail / Email','Yahoo Mail','Bank account','Phone / SIM card','Other']},
+        {id:'q2',label:'Can you still log in?',opts:['Yes, I still have some access','No, I am completely locked out']},
+        {id:'q3',label:'Was any money sent without your permission?',opts:['Yes','No','I am not sure']},
+        {id:'q4',label:'When did this happen?',opts:['Within the last hour','Earlier today','Yesterday','More than 2 days ago']},
+      ],
+      phishing:[
+        {id:'q1',label:'What did you receive?',opts:['A suspicious link via SMS','A suspicious email','A WhatsApp message','A Facebook / Messenger message','A phone call']},
+        {id:'q2',label:'Did you click anything or enter any information?',opts:['I only clicked the link','I entered my password','I entered my bank details','No, I did not click anything']},
+        {id:'q3',label:'Did you lose any money?',opts:['Yes','No','Not sure yet']},
+      ],
+      malware:[
+        {id:'q1',label:'Which device is affected?',opts:['Android phone','iPhone','Windows laptop or PC','Mac computer']},
+        {id:'q2',label:'What are you noticing?',opts:['Device is very slow or crashing','Unknown apps appeared','Too many ads and popups','Device is overheating','Strange messages sent from my accounts']},
+        {id:'q3',label:'Did you install anything recently?',opts:['Yes, an APK or app from outside the official store','Yes, from Play Store or App Store','No','Not sure']},
+      ],
+      blackmail:[
+        {id:'q1',label:'What is the threat about?',opts:['They have my private photos or videos','They have access to my accounts','They are demanding money','They made physical threats','Something else']},
+        {id:'q2',label:'Have you paid them anything?',opts:['Yes, I already paid','No, not yet','They are demanding payment right now']},
+        {id:'q3',label:'How are they contacting you?',opts:['WhatsApp','Facebook / Messenger','Email','SMS','Phone call']},
+      ],
+      financial:[
+        {id:'q1',label:'What happened?',opts:['Unauthorised bank transfer','eSewa or Khalti was drained','My credit or debit card was misused','I sent money to a scammer','Something else']},
+        {id:'q2',label:'How much money was taken (approximately)?',opts:['Under Rs 5,000','Rs 5,000 – 50,000','Rs 50,000 – 2,00,000','Over Rs 2,00,000']},
+        {id:'q3',label:'When did this happen?',opts:['Within the last 2 hours','Earlier today','Yesterday','More than 2 days ago']},
+      ],
+      other:[
+        {id:'q1',label:'What best describes what happened?',opts:['Someone is pretending to be me online','My personal data was leaked','I received threatening messages','I cannot figure out which category this fits']},
+        {id:'q2',label:'Is this still happening right now?',opts:['Yes, it is happening right now','It already happened','I am not sure']},
+      ],
+    },
+    quizCategories:[
+      {key:'passwords',name:'Passwords',icon:'lock'},
+      {key:'phishing',name:'Spotting Scams',icon:'hook'},
+      {key:'social',name:'Social Media Safety',icon:'shield'},
+      {key:'financial',name:'Online Banking',icon:'card'},
+    ],
+    quiz:{
+      passwords:[
+        {q:'Which of these is the BEST password?',opts:['Ram1234','nepal@2024','kH$9!mP2@qR7','mybirthday'],correct:2,exp:'A strong password mixes uppercase and lowercase letters, numbers, and symbols. It should not be a word or date someone could guess.'},
+        {q:'You get a popup saying "Your password was leaked! Click here to reset it." What should you do?',opts:['Click the link quickly','Ignore it completely','Close the popup and go directly to the official website to check','Share it with friends'],correct:2,exp:'Always go directly to the official website instead of clicking links in popups or messages. Scammers use fake alerts to steal your password.'},
+        {q:'How often should you change your password?',opts:['Never — a strong password lasts forever','Every year or if you think it was stolen','Every single day','Only when the website forces you'],correct:1,exp:'You do not need to change it constantly, but you should change it if you suspect it was stolen, or at least once a year for sensitive accounts.'},
+        {q:'What is two-step verification (2FA)?',opts:['A way to have two different passwords','An extra code sent to your phone when you log in','A type of antivirus','A backup email'],correct:1,exp:'2FA sends a one-time code to your phone when you log in. Even if someone steals your password, they still cannot get in without your phone.'},
+      ],
+      phishing:[
+        {q:'You get a message: "Dear customer, your account is suspended. Click here: http://nbl-nepal-bank.site". What is suspicious?',opts:['The word "suspended"','The website address looks fake — it is not the real bank website','The message is too polite','Nothing, this looks real'],correct:1,exp:'Real banks use their official domain (e.g. nbl.com.np). A fake domain like "nbl-nepal-bank.site" is a major warning sign of a phishing scam.'},
+        {q:'A friend sends you a WhatsApp link saying "Win a free phone! Limited time!" What should you do?',opts:['Click it immediately — free phone!','Ask your friend if they really sent it, then check carefully before clicking','Forward it to everyone','Ignore it only if you do not want a phone'],correct:1,exp:'Even messages from friends can be scams if their account was hacked. Always verify with your friend directly before clicking surprise links.'},
+        {q:'Which is a real sign that a website is safe?',opts:['It has a nice design','The web address starts with https:// and shows a padlock','It has lots of reviews','It loads quickly'],correct:1,exp:'https:// means the connection is encrypted. But note: even fake websites can have https://, so also check the domain name carefully.'},
+        {q:'What should you do immediately after clicking a phishing link?',opts:['Wait and see if anything happens','Disconnect from the internet, change your passwords on another device, and scan for viruses','Tell your friends to be careful','Delete the message'],correct:1,exp:'Act fast. Disconnect internet, change passwords from a safe device, and run a virus scan. Speed matters — the sooner you act, the less damage.'},
+      ],
+      social:[
+        {q:'A stranger sends you a friend request on Facebook and immediately starts being very friendly. What is this called?',opts:['Being nice','Social engineering — they may be trying to scam you','Online dating','Networking'],correct:1,exp:'Scammers build fake trust quickly. This is called social engineering. Do not share personal or financial information with strangers online.'},
+        {q:'What information is SAFE to share on your public Facebook profile?',opts:['Your home address','Your phone number','Your first name and general interests','Your ID card photo'],correct:2,exp:'Keep personal information like your address, phone number, and ID private. Sharing them publicly makes it easy for scammers to target you.'},
+        {q:'Someone messages you pretending to be Nepal Police and asks for your Khalti PIN. What should you do?',opts:['Give it — they are the police','Never give your PIN to anyone, even police. Real authorities do not ask for PINs.','Ask for their badge number first, then give it','Block them immediately without doing anything else'],correct:1,exp:'No legitimate authority, bank, or government body will ever ask for your PIN, OTP, or password. This is always a scam.'},
+      ],
+      financial:[
+        {q:'You receive an OTP on your phone that you did not request. What should you do?',opts:['Enter it somewhere to see what happens','Immediately call your bank and tell them','Share it if someone calls and asks for it','Ignore it — it is probably a mistake'],correct:1,exp:'An OTP you did not request means someone may be trying to access your account. Call your bank immediately. Never share OTPs with anyone.'},
+        {q:'The safest time to use internet banking is...',opts:['On public WiFi at a cafe','On your personal phone with your own data connection','On a shared computer at a school or shop','On any network as long as you have antivirus'],correct:1,exp:'Public WiFi can be monitored by hackers. Always use internet banking on your own trusted device and network.'},
+        {q:'Which of these is a safe online transaction habit?',opts:['Saving your card number on every website for convenience','Always checking your bank statement and reporting unknown transactions immediately','Using the same PIN for all your cards','Sharing your card photo when a shop asks for verification'],correct:1,exp:'Regularly checking your statement helps you catch fraud early. Report any unknown transaction to your bank immediately.'},
+      ],
+    }
+  },
+  ne: {
+    btnLabel:'आपतकाल', btnMain:'म साइबर आक्रमणमा छु',
+    typeLabel:'कस्तो प्रकारको आक्रमण भएको छ?',
+    triageTitle:'के भयो भनेर बताउनुहोस्',
+    triageSubmit:'रिकभरी योजना तयार गर्नुहोस्',
+    recoveryTitle:'तपाईंको रिकभरी योजना',
+    loadingText:'तपाईंको योजना तयार हुँदैछ...',
+    evTitle:'प्रमाण संकलन',
+    evDesc:'अहिले नै सबै कुरा लेख्नुहोस् — प्रमाण हराउनु अघि।',
+    evMeta:'सबै प्रमाण तपाईंकै यन्त्रमा, गोपनीय रूपमा सुरक्षित।',
+    evSave:'प्रमाण सुरक्षित गर्नुहोस्',
+    evPlaceholder:'के भयो लेख्नुहोस्, संदिग्ध लिङ्क टाँस्नुहोस्...',
+    statusOnline:'प्रणाली सक्रिय', statusAnon:'गोपनीय सत्र',
+    resetBtn:'फेरि सुरु', langToggle:'🌐 EN',
+    markDone:'सम्पन्न', done:'भयो ✓',
+    copyBtn:'कपी गर्नुहोस्', copied:'कपी भयो!',
+    scriptLabel:'सहायताको लागि फोन गर्दा के भन्ने',
+    severityHigh:'उच्च जोखिम', severityMed:'मध्यम जोखिम', severityLow:'न्यून जोखिम',
+    progress:'रिकभरी प्रगति', stepsDone:'चरणहरू पूरा',
+    histTitle:'तपाईंको गतिविधि इतिहास', histDesc:'यस यन्त्रमा भएका सबै सत्रहरूको रेकर्ड।',
+    histEmpty:'अहिलेसम्म कुनै सत्र छैन। मद्दत चाहिएमा रातो बटन थिच्नुहोस्।',
+    clearHist:'सबै इतिहास मेट्नुहोस्',
+    statS:'सत्रहरू', statSt:'चरणहरू', statQ:'क्विज स्कोर',
+    quizTitle:'साइबर सुरक्षा क्विज', quizSub:'आफ्नो ज्ञान परीक्षण गर्नुहोस्।',
+    quizCorrect:'✓ सही!', quizWrong:'✗ गलत',
+    quizNext:'अर्को प्रश्न', quizFinish:'मेरो स्कोर हेर्नुहोस्', quizRestart:'फेरि प्रयास',
+    noKey:'API key छैन। ⚙️ थिचेर आफ्नो Gemini key थप्नुहोस्।',
+    tabHome:'गृह', tabHist:'इतिहास', tabQuiz:'क्विज',
+    chatSug:['पहिले के गर्ने?','साइबर ब्युरो?','मेरो यन्त्र सुरक्षित छ?'],
+    attackTypes:[
+      {key:'hacking',name:'खाता ह्याक',desc:'कसैले खाता乗っ取り गर्यो',icon:'lock'},
+      {key:'phishing',name:'फिसिङ/ठगी',desc:'नक्कली लिङ्क वा सन्देश',icon:'hook'},
+      {key:'malware',name:'भाइरस/म्यालवेयर',desc:'यन्त्र संक्रमित भयो',icon:'bug'},
+      {key:'blackmail',name:'ब्ल्याकमेल',desc:'धम्की वा जबरजस्ती',icon:'shield'},
+      {key:'financial',name:'आर्थिक ठगी',desc:'पैसा गुम्यो',icon:'card'},
+      {key:'other',name:'अन्य आक्रमण',desc:'अरू केही भयो',icon:'alert'},
+    ],
+    triage:{
+      hacking:[
+        {id:'q1',label:'कुन खाता ह्याक भयो?',opts:['Facebook','Instagram','Gmail/Email','Yahoo Mail','बैंक खाता','फोन/SIM','अन्य']},
+        {id:'q2',label:'के तपाईंको अझै पहुँच छ?',opts:['हो, आंशिक पहुँच छ','छैन, पूर्णतः बाहिर']},
+        {id:'q3',label:'के पैसा स्थानान्तरण भयो?',opts:['हो','होइन','थाहा छैन']},
+        {id:'q4',label:'कहिले भयो?',opts:['एक घण्टाभित्र','आज','हिजो','२ दिनभन्दा बढी अघि']},
+      ],
+      phishing:[
+        {id:'q1',label:'के प्राप्त भयो?',opts:['SMS मा संदिग्ध लिङ्क','संदिग्ध इमेल','WhatsApp सन्देश','Facebook सन्देश','फोन कल']},
+        {id:'q2',label:'के क्लिक वा जानकारी भर्नुभयो?',opts:['लिङ्क मात्र क्लिक','पासवर्ड हालें','बैंक विवरण हालें','होइन, क्लिक गरिनं']},
+        {id:'q3',label:'पैसा गुम्यो?',opts:['हो','होइन','अझै थाहा छैन']},
+      ],
+      malware:[
+        {id:'q1',label:'कुन यन्त्र प्रभावित?',opts:['Android फोन','iPhone','Windows ल्यापटप/PC','Mac']},
+        {id:'q2',label:'के देख्दैछौ?',opts:['यन्त्र ढिलो/क्र्यास','अनजान एप देखियो','विज्ञापन/पपअप','यन्त्र तातेको','खाताबाट अनजान सन्देश']},
+        {id:'q3',label:'हालसालै केही इन्स्टल गर्नुभयो?',opts:['APK/अनजान एप','अफिसियल स्टोरबाट','होइन','थाहा छैन']},
+      ],
+      blackmail:[
+        {id:'q1',label:'धम्की केको?',opts:['निजी फोटो/भिडियो','खाताको पहुँच','पैसाको धम्की','शारीरिक धम्की','अन्य']},
+        {id:'q2',label:'पैसा दिनुभयो?',opts:['हो','होइन, अझै','अहिले माग भइरहेको']},
+        {id:'q3',label:'कसरी सम्पर्क गर्दैछन्?',opts:['WhatsApp','Facebook','Email','SMS','फोन कल']},
+      ],
+      financial:[
+        {id:'q1',label:'के भयो?',opts:['अनाधिकृत बैंक ट्रान्सफर','eSewa/Khalti खाली','क्रेडिट/डेबिट कार्ड दुरुपयोग','ठगलाई पैसा पठाएँ','अन्य']},
+        {id:'q2',label:'कति पैसा गयो?',opts:['रु ५,००० भन्दा कम','रु ५,०००–५०,०००','रु ५०,०००–२,००,०००','रु २,००,००० भन्दा बढी']},
+        {id:'q3',label:'कहिले भयो?',opts:['२ घण्टाभित्र','आज','हिजो','२ दिनभन्दा बढी अघि']},
+      ],
+      other:[
+        {id:'q1',label:'के भयो?',opts:['कसैले मलाई नक्कल गरिरहेको','मेरो डेटा लिक','धम्कीपूर्ण सन्देश','वर्गीकरण गर्न नसकेको']},
+        {id:'q2',label:'अहिले पनि खतरा जारी छ?',opts:['हो, अहिले भइरहेको','भइसक्यो','थाहा छैन']},
+      ],
+    },
+    quizCategories:[
+      {key:'passwords',name:'पासवर्ड',icon:'lock'},
+      {key:'phishing',name:'ठगी पहिचान',icon:'hook'},
+      {key:'social',name:'सोसल मिडिया',icon:'shield'},
+      {key:'financial',name:'अनलाइन बैंकिङ',icon:'card'},
+    ],
+    quiz:{
+      passwords:[
+        {q:'कुन पासवर्ड सबैभन्दा राम्रो हो?',opts:['Ram1234','nepal@2024','kH$9!mP2@qR7','mybirthday'],correct:2,exp:'राम्रो पासवर्डमा ठूलो र सानो अक्षर, नम्बर र चिन्ह हुन्छन्। अनुमान लगाउन सकिने शब्द वा मिति प्रयोग नगर्नुहोस्।'},
+        {q:'"तपाईंको पासवर्ड लिक भयो! यहाँ क्लिक गर्नुहोस्" — के गर्ने?',opts:['छिटो क्लिक गर्ने','पूर्णतः बेवास्ता गर्ने','पपअप बन्द गरेर आफैं आधिकारिक वेबसाइटमा जाने','साथीहरूसँग सेयर गर्ने'],correct:2,exp:'सधैं आधिकारिक वेबसाइटमा आफैं जानुहोस्। ठगहरू नक्कली अलर्ट देखाएर पासवर्ड चोर्छन्।'},
+        {q:'पासवर्ड कति पटक बदल्ने?',opts:['कहिल्यै नबदल्ने','वर्षमा एकपटक वा चोरी भएको थाहा पाउनासाथ','हरेक दिन','वेबसाइटले बाध्य गर्दा मात्र'],correct:1,exp:'धेरै पटक बदल्नु जरुरी छैन, तर वर्षमा एकपटक वा चोरी भएको शंका लागेमा तुरन्त बदल्नुहोस्।'},
+        {q:'Two-step verification (2FA) के हो?',opts:['दुई पासवर्ड राख्ने तरिका','लग इन गर्दा फोनमा आउने अतिरिक्त कोड','एक प्रकारको एन्टिभाइरस','ब्याकअप इमेल'],correct:1,exp:'2FA ले लग इन गर्दा फोनमा एकपटक प्रयोग हुने कोड पठाउँछ। पासवर्ड चोरी भए पनि कोड बिना ह्याकर भित्र पस्न सक्दैन।'},
+      ],
+      phishing:[
+        {q:'"प्रिय ग्राहक, आपको खाता निलम्बन भयो। क्लिक गर्नुहोस्: http://nbl-nepal-bank.site" — के संदिग्ध छ?',opts:['"निलम्बन" शब्द','वेबसाइटको ठेगाना नक्कली देखिन्छ — यो असली बैंकको वेबसाइट होइन','सन्देश धेरै शिष्ट छ','केही पनि होइन, यो सक्कली देखिन्छ'],correct:1,exp:'असली बैंकले आफ्नो आधिकारिक डोमेन प्रयोग गर्छ। "nbl-nepal-bank.site" जस्तो नक्कली डोमेन फिसिङको ठूलो संकेत हो।'},
+        {q:'साथीले WhatsApp मा "नि:शुल्क फोन जित्नुहोस्!" लिङ्क पठाए। के गर्ने?',opts:['तुरन्त क्लिक गर्ने','साथीसँग सोधेर पुष्टि गर्ने र त्यसपछि मात्र सावधानीसाथ क्लिक गर्ने','सबैलाई फर्वार्ड गर्ने','केवल फोन नचाहिए मात्र बेवास्ता गर्ने'],correct:1,exp:'साथीको खाता ह्याक भएको हुन सक्छ। अचानक लिङ्क आउँदा पहिले साथीलाई सोध्नुहोस्।'},
+        {q:'वेबसाइट सुरक्षित छ भन्ने कुन संकेत हो?',opts:['सुन्दर डिजाइन छ','ठेगाना https:// बाट सुरु हुन्छ र तालाको चिन्ह छ','धेरै समीक्षाहरू छन्','छिटो लोड हुन्छ'],correct:1,exp:'https:// को मतलब कनेक्शन एन्क्रिप्टेड छ। तर नक्कली वेबसाइटमा पनि https:// हुन सक्छ — डोमेन नाम ध्यानले जाँच गर्नुहोस्।'},
+        {q:'फिसिङ लिङ्क क्लिक गरेपछि तुरन्त के गर्ने?',opts:['केही हुन्छ कि भनेर कुर्ने','इन्टरनेट बन्द गर्ने, अर्को सुरक्षित यन्त्रबाट पासवर्ड बदल्ने, भाइरस जाँच गर्ने','साथीहरूलाई सावधान गर्ने','सन्देश मेट्ने'],correct:1,exp:'छिटो काम गर्नुहोस्। इन्टरनेट डिस्कनेक्ट गर्नुहोस्, सुरक्षित यन्त्रबाट पासवर्ड बदल्नुहोस्, र भाइरस स्क्यान गर्नुहोस्।'},
+      ],
+      social:[
+        {q:'Facebook मा अनजान व्यक्तिले friend request पठाएर तुरन्त धेरै मिलनसार हुन्छ। यो के हो?',opts:['राम्रो स्वभाव','Social engineering — तिनीहरू ठग्न खोज्दै हुन सक्छन्','अनलाइन मित्रता','नेटवर्किङ'],correct:1,exp:'ठगहरू छिटो नक्कली विश्वास बनाउँछन्। अनलाइन अपरिचितसँग व्यक्तिगत वा आर्थिक जानकारी कहिल्यै नसाझा गर्नुहोस्।'},
+        {q:'तपाईंको सार्वजनिक Facebook प्रोफाइलमा के राख्न सुरक्षित छ?',opts:['घरको ठेगाना','फोन नम्बर','नाम र साधारण रुचिहरू','परिचयपत्रको फोटो'],correct:2,exp:'ठेगाना, फोन नम्बर र परिचयपत्र निजी राख्नुहोस्। यी सार्वजनिक गर्दा ठगहरूलाई लक्ष्य बनाउन सजिलो हुन्छ।'},
+        {q:'कसैले Nepal Police भन्दै Khalti PIN माग्यो। के गर्ने?',opts:['दिने — तिनीहरू पुलिस हुन्','कसैलाई पनि PIN नदिने। असली अधिकारीले PIN माग्दैन।','ब्याज नम्बर सोधेर दिने','तुरन्त ब्लक गर्ने'],correct:1,exp:'कुनै पनि वैध प्राधिकरण, बैंक वा सरकारी निकायले PIN, OTP वा पासवर्ड माग्दैन। यो सधैं ठगी हो।'},
+      ],
+      financial:[
+        {q:'आफूले नमागेको OTP फोनमा आयो। के गर्ने?',opts:['हाल्न खोज्ने','तुरन्त बैंकलाई फोन गर्ने','कसैले माग्यो भने दिने','बेवास्ता गर्ने'],correct:1,exp:'नमागेको OTP मतलब कसैले तपाईंको खाता खोल्न खोज्दैछ। तुरन्त बैंकलाई फोन गर्नुहोस्। OTP कसैलाई नदिनुहोस्।'},
+        {q:'इन्टरनेट बैंकिङ कहाँ गर्नु सुरक्षित?',opts:['क्याफेको सार्वजनिक WiFi मा','आफ्नै फोन र डेटा कनेक्शनमा','विद्यालय वा पसलको साझा कम्प्युटरमा','एन्टिभाइरस भएको जुनसुकै नेटवर्कमा'],correct:1,exp:'सार्वजनिक WiFi ह्याकरले हेर्न सक्छन्। बैंकिङ सधैं आफ्नै विश्वसनीय यन्त्र र नेटवर्कमा गर्नुहोस्।'},
+        {q:'अनलाइन लेनदेनको सुरक्षित बानी कुन हो?',opts:['सुविधाको लागि सबै वेबसाइटमा कार्ड नम्बर सेभ गर्ने','बैंक स्टेटमेन्ट नियमित जाँच्ने र अनजान लेनदेन तुरन्त रिपोर्ट गर्ने','सबै कार्डमा उही PIN राख्ने','पसलले माग्दा कार्डको फोटो पठाउने'],correct:1,exp:'स्टेटमेन्ट नियमित जाँच्दा ठगी चाँडो थाहा हुन्छ। अनजान लेनदेन तुरन्त बैंकलाई रिपोर्ट गर्नुहोस्।'},
+      ],
+    }
+  },
+  ro: {
+    btnLabel:'Emergency', btnMain:'Mero account hack vayo / Ma attack ma chu',
+    typeLabel:'Kun khaale attack bhayo?',
+    triageTitle:'Ke bhayo bhannuhos',
+    triageSubmit:'Recovery plan banaunus',
+    recoveryTitle:'Tapaaiko recovery plan',
+    loadingText:'Tapaaiko plan taiyaar hudaichha...',
+    evTitle:'Praman Sangaalan',
+    evDesc:'Aba nai sab kura likhnus — praman haraunu aghi.',
+    evMeta:'Sab kura tapaaiko device ma, gopaniya roop ma.',
+    evSave:'Praman bachaunus',
+    evPlaceholder:'Ke bhayo lekhnus, suspicious link taanus...',
+    statusOnline:'System active cha', statusAnon:'Gopaniya session',
+    resetBtn:'Feri suru garnus', langToggle:'🌐 NE',
+    markDone:'Sampanna', done:'Bhayo ✓',
+    copyBtn:'Copy garnus', copied:'Copy bhayo!',
+    scriptLabel:'Help ko lagi phone garda ke bhannus',
+    severityHigh:'Uchcha jokhim', severityMed:'Madhyam jokhim', severityLow:'Nyun jokhim',
+    progress:'Recovery pragati', stepsDone:'charan pura',
+    histTitle:'Tapaaiko itihaas', histDesc:'Yo device ma garieka sab session ko record.',
+    histEmpty:'Ahileasamm koi session chhaina. Maddat chainepla raamro button thicchnus.',
+    clearHist:'Sab itihaas metnus',
+    statS:'Session', statSt:'Charan', statQ:'Quiz score',
+    quizTitle:'Cyber Suraksha Quiz', quizSub:'Aafno gyaan pariskhan garnus.',
+    quizCorrect:'✓ Sahi!', quizWrong:'✗ Galat',
+    quizNext:'Arko prashna', quizFinish:'Mero score hernus', quizRestart:'Feri prayas garnus',
+    noKey:'API key chhaina. ⚙️ thichera Gemini key thapchhnus.',
+    tabHome:'Ghara', tabHist:'Itihaas', tabQuiz:'Quiz',
+    chatSug:['Pahile ke garne?','Cyber Bureau?','Mero device safe cha?'],
+    attackTypes:[
+      {key:'hacking',name:'Account Hack',desc:'Kasaile account liyyo',icon:'lock'},
+      {key:'phishing',name:'Phishing/Thagi',desc:'Nakkali link wa sandesh',icon:'hook'},
+      {key:'malware',name:'Virus/Malware',desc:'Yantra infected bhayo',icon:'bug'},
+      {key:'blackmail',name:'Blackmail',desc:'Dhamaki wa jabardasti',icon:'shield'},
+      {key:'financial',name:'Paisa Thagi',desc:'Paisa gumyo',icon:'card'},
+      {key:'other',name:'Arko attack',desc:'Aru kei bhayo',icon:'alert'},
+    ],
+    triage:{
+      hacking:[
+        {id:'q1',label:'Kun account hack bhayo?',opts:['Facebook','Instagram','Gmail/Email','Bank account','Phone/SIM','Arko']},
+        {id:'q2',label:'Ke tapaaile aba pani login garna sakchha?',opts:['Hoo, aaanshik pahunch cha','Chhaina, purnata lock out']},
+        {id:'q3',label:'Ke paisa transfer bhayo?',opts:['Hoo','Hoina','Thaaha chhaina']},
+        {id:'q4',label:'Kahile bhayo?',opts:['Ek ghantabhitra','Aaja','Hijo','2 din aghi']},
+      ],
+      phishing:[
+        {id:'q1',label:'Ke paayo?',opts:['SMS ma link','Suspicious email','WhatsApp sandesh','Facebook sandesh','Phone call']},
+        {id:'q2',label:'Ke click garyaa wa information bharyo?',opts:['Link matra click','Password halyo','Bank vivaran halyo','Hoina, click garinaa']},
+        {id:'q3',label:'Ke paisa gumyo?',opts:['Hoo','Hoina','Abhae thaaha chhaina']},
+      ],
+      malware:[
+        {id:'q1',label:'Kun yantra infected?',opts:['Android phone','iPhone','Windows laptop/PC','Mac']},
+        {id:'q2',label:'Ke dekhidaichha?',opts:['Yantra dhilo/crash','Anjaan app aayo','Ads/popup','Yantra tateko','Khataabata anjaan sandesh']},
+        {id:'q3',label:'Kehi install garyaa?',opts:['Hoo, APK/anjaan app','Official store bata','Hoina','Thaaha chhaina']},
+      ],
+      blackmail:[
+        {id:'q1',label:'Dhamaki kun baarema?',opts:['Private photo/video','Account access','Paisa maango','Shaareerik dhamaki','Aru']},
+        {id:'q2',label:'Ke paisa diyaa?',opts:['Hoo','Hoina, ajhai','Abhi maag bhairako']},
+        {id:'q3',label:'Kasari contact gardaichhan?',opts:['WhatsApp','Facebook','Email','SMS','Phone call']},
+      ],
+      financial:[
+        {id:'q1',label:'Ke bhayo?',opts:['Bank transfer bhayo','eSewa/Khalti khaali','Card durupayog','Thaglai paisa pathaaayo','Aru']},
+        {id:'q2',label:'Kati paisa gayo?',opts:['Rs 5000 bhanda kam','Rs 5000-50000','Rs 50000-2,00,000','Rs 2,00,000 bhanda badi']},
+        {id:'q3',label:'Kahile bhayo?',opts:['2 ghantabhitra','Aaja','Hijo','2 din aghi']},
+      ],
+      other:[
+        {id:'q1',label:'Ke bhayo?',opts:['Kasaile mero nakal gareko','Mero data leak bhayo','Dhamaki sandesh paayo','Category thaha chhaina']},
+        {id:'q2',label:'Abhi pani khatraa jari cha?',opts:['Hoo, abhi bhairako','Bhai sakyo','Thaaha chhaina']},
+      ],
+    },
+    quizCategories:[
+      {key:'passwords',name:'Password',icon:'lock'},
+      {key:'phishing',name:'Thagi Pahichan',icon:'hook'},
+      {key:'social',name:'Social Media',icon:'shield'},
+      {key:'financial',name:'Online Banking',icon:'card'},
+    ],
+    quiz:{
+      passwords:[
+        {q:'Kun password sabai ramro cha?',opts:['Ram1234','nepal@2024','kH$9!mP2@qR7','mybirthday'],correct:2,exp:'Ramro password ma thulo ra sano akshar, number ra chinh hunchha. Anuman lagauna sakiney shabad wa miti naprayog garnus.'},
+        {q:'"Tapaako password leak bhayo! Yahaa click garnus" — ke garnu?',opts:['Chito click garnu','Purnatah bawasta garnu','Popup banda garera aafai official website ma jaanu','Saathiharulai share garnu'],correct:2,exp:'Sadhai official website ma aafai jaanus. Thagaharu nakkali alert dekhaayera password chorchhan.'},
+        {q:'Password kati pati badalne?',opts:['Kahilyai nabadalne','Barsama ekapatak wa choreko shankaa lagepla','Har din','Website le badhya gardaa matra'],correct:1,exp:'Dhrai pati badaalna jaruree chhaina, tara barsama ekapatak wa shankaa lagepla tarant badlanus.'},
+        {q:'Two-step verification (2FA) ke ho?',opts:['Dui password raakhne','Login gardaa phone ma aune extra code','Ek khaale antivirus','Backup email'],correct:1,exp:'2FA le login gardaa phone ma ek patakyai code pathauchha. Password choriye pani code bina hack garna sakdaina.'},
+      ],
+      phishing:[
+        {q:'SMS aayo: "Tapaako khata band bhayo. Click garnus: http://nbl-nepal-bank.site" — ke sandehaspada cha?',opts:['"Band bhayo" shabda','Website ko thaegaana nakkali dekhinchhya — yo real bank ko website hoina','Sandesh dhraai shishta cha','Kehi hoina, yo sacchi dekhinchhya'],correct:1,exp:'Real bank le aafno official domain prayog garchha. "nbl-nepal-bank.site" jasto nakkali domain phishing ko thatho sanket ho.'},
+        {q:'Saathi le "Nisulka phone jitnus!" link pathaayo. Ke garnu?',opts:['Tarat click garnu','Saathilai sodhera confirm garnu, tyo pachhi matra click garnu','Sabailai forward garnu','Phone nachaaiye matra bawasta garnu'],correct:1,exp:'Saathi ko account hack bhayeko hun sakchha. Aakasmik link aaundaa pahile saathinlai sodhnus.'},
+        {q:'Website suraksit chha bhanney kachhi sanket kun ho?',opts:['Sundar design cha','Thaegaana https:// bata suru hunchha ra taalaako chinh cha','Dhraai reviews chhan','Chito load hunchha'],correct:1,exp:'https:// ko matlab connection encrypted cha. Tara nakkali website ma pani https:// hun sakchha — domain naam dhyan le jaanchnus.'},
+        {q:'Phishing link click gareko pachhi ke garnu?',opts:['Kehi hunchha ki bhanera kurnu','Internet banda garnu, arko safe yantra bata password badlanu, virus jaachh garnu','Saathiharulai saabadhaan garnu','Sandesh metnu'],correct:1,exp:'Chito kaam garnus. Internet disconnect garnus, safe yantra bata password badlanus, ra virus scan garnus.'},
+      ],
+      social:[
+        {q:'Facebook ma anjaan manchhe le friend request pathaaera tarant dhraai milansaar hunthyo. Yo ke ho?',opts:['Ramro swabhaav','Social engineering — tiniharoo thagana khojdai hun sakchan','Online maetri','Networking'],correct:1,exp:'Thagaharu chito nakkali bishwas banaaunchhan. Online achhenatosang kabhi pani byaktigat wa aarthik jaankari nasaajha garnus.'},
+        {q:'Tapaaiko public Facebook profile ma ke raakhna suraksit cha?',opts:['Ghar ko thegaana','Phone number','Naama ra saadharan ruchi','Parichayapatra ko photo'],correct:2,exp:'Thaegaana, phone number ra parichayapatra niji raakhnus. Yo public gareyma thagaharulai lakshya banaauna sajilo hunchha.'},
+        {q:'Kasaile Nepal Police bhanda Khalti PIN maagio. Ke garnu?',opts:['Dinuhos — tiniharoo police hun','Kasailai pani PIN nadinus. Real adhikaarile PIN maagdaina.','Badge number sodhera dinuhos','Tarat block garnus'],correct:1,exp:'Kunai pani valid pradhikaaran, bank wa sarakaarle PIN, OTP wa password maagdaina. Yo sadhai thagi ho.'},
+      ],
+      financial:[
+        {q:'Namaageko OTP phone ma aayo. Ke garnu?',opts:['Haalnu khoJnu','Tarat bank lai phone garnu','Kasaile maagio bhane dinus','Bawasta garnu'],correct:1,exp:'Namaageko OTP matlab kasaile tapaaiko account kholna khozdaichha. Tarat bank lai phone garnus. OTP kasailai nadinus.'},
+        {q:'Internet banking kahaa garnu suraksit?',opts:['Cafe ko public WiFi ma','Aafnai phone ra data connection ma','Bidyaalay wa pasal ko share computer ma','Antivirus bhayeko junasuke network ma'],correct:1,exp:'Public WiFi haacker le herana sakchha. Banking sadhai aafnai bishwasniya yantra ra network ma garnus.'},
+        {q:'Online ledanden ko suraksit baan kun ho?',opts:['Subidha ko lagi sab website ma card number save garnu','Bank statement niyamit jaanchnu ra anjaan ledanden tarat report garnu','Sab card ma uhi PIN raakhnu','Pasal le maangdaa card ko photo pathaunu'],correct:1,exp:'Statement niyamit jaachdaa thagi chhaado thaaha hunchha. Anjaan ledanden tarat bank lai report garnus.'},
+      ],
+    }
+  }
+};
+
+// ── ICONS ──
+function getIcon(key){
+  const icons={
+    lock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+    hook:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>`,
+    bug:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 2l1.5 1.5"/><path d="M14.5 3.5L16 2"/><path d="M9 9H5"/><path d="M19 9h-4"/><path d="M9 19H6l-2 2"/><path d="M15 19h3l2 2"/><rect x="8" y="9" width="8" height="12" rx="4"/></svg>`,
+    shield:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+    card:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>`,
+    alert:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+  };
+  return icons[key]||icons.alert;
+}
+
+// ── LANG ──
+function selectLang(l){
+  lang=l;
+  document.getElementById('lang-screen').classList.remove('active');
+  document.getElementById('main-screen').classList.add('active');
+  document.getElementById('chat-fab').classList.add('visible');
+  applyLang();
+  renderQuizCategories();
+  renderHistory();
+}
+function toggleLang(){
+  if(lang==='en') lang='ne';
+  else if(lang==='ne') lang='ro';
+  else lang='en';
+  applyLang();
+}
+function applyLang(){
+  const t=T[lang];
+  document.getElementById('btn-label').textContent=t.btnLabel;
+  document.getElementById('btn-main').textContent=t.btnMain;
+  document.getElementById('lang-toggle-btn').textContent=t.langToggle||'🌐';
+  document.getElementById('status-online').textContent=t.statusOnline;
+  document.getElementById('status-anon').textContent=t.statusAnon;
+  document.getElementById('reset-btn').textContent=t.resetBtn;
+  document.getElementById('triage-title').textContent=t.triageTitle;
+  document.getElementById('triage-submit-label').textContent=t.triageSubmit;
+  document.getElementById('recovery-title').textContent=t.recoveryTitle;
+  document.getElementById('loading-text').textContent=t.loadingText;
+  document.getElementById('ev-title').textContent=t.evTitle;
+  document.getElementById('ev-desc').textContent=t.evDesc;
+  document.getElementById('ev-meta').textContent=t.evMeta;
+  document.getElementById('ev-save-btn').textContent=t.evSave;
+  document.getElementById('ev-input').placeholder=t.evPlaceholder;
+  document.getElementById('type-label').textContent=t.typeLabel;
+  document.getElementById('tab-home-label').textContent=t.tabHome;
+  document.getElementById('tab-hist-label').textContent=t.tabHist;
+  document.getElementById('tab-quiz-label').textContent=t.tabQuiz;
+  document.getElementById('hist-title').textContent=t.histTitle;
+  document.getElementById('hist-desc').textContent=t.histDesc;
+  document.getElementById('clear-hist-btn').textContent=t.clearHist;
+  document.getElementById('stat-s-label').textContent=t.statS;
+  document.getElementById('stat-st-label').textContent=t.statSt;
+  document.getElementById('stat-q-label').textContent=t.statQ;
+  document.getElementById('quiz-main-title').textContent=t.quizTitle;
+  document.getElementById('quiz-sub').textContent=t.quizSub;
+  const sugs=t.chatSug||[];
+  if(sugs[0]) document.getElementById('sug1').textContent=sugs[0];
+  if(sugs[1]) document.getElementById('sug2').textContent=sugs[1];
+  if(sugs[2]) document.getElementById('sug3').textContent=sugs[2];
+  if(document.getElementById('type-section').style.display!=='none') renderAttackTypes();
+  renderHistory();
+  renderQuizCategories();
+}
+
+// ── TABS ──
+function switchTab(tab){
+  ['home','history','quiz'].forEach(t=>{
+    document.getElementById('tab-'+t+'-content').classList.toggle('active',t===tab);
+    document.getElementById('tab-'+t).classList.toggle('active-tab',t===tab);
+  });
+  if(tab==='history') renderHistory();
+}
+
+// ── HOME FLOW ──
+function onAttackClick(){
+  document.getElementById('type-section').style.display='block';
+  document.getElementById('evidence-panel').classList.add('active');
+  renderAttackTypes();
+  document.getElementById('attack-btn').style.background='var(--red-800)';
+  document.getElementById('attack-btn').onclick=null;
+}
+function renderAttackTypes(){
+  const t=T[lang];
+  const c=document.getElementById('attack-types');
+  c.innerHTML='';
+  t.attackTypes.forEach(at=>{
+    const card=document.createElement('div');
+    card.className='type-card'+(selectedType===at.key?' selected':'');
+    card.onclick=()=>selectType(at.key);
+    card.innerHTML=`<div class="type-icon">${getIcon(at.icon)}</div><span class="type-name">${at.name}</span><span class="type-desc">${at.desc}</span>`;
+    c.appendChild(card);
+  });
+}
+function selectType(key){
+  selectedType=key;
+  triageAnswers={};
+  renderAttackTypes();
+  renderTriage();
+  document.getElementById('triage-panel').classList.add('active');
+  setTimeout(()=>document.getElementById('triage-panel').scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+}
+function renderTriage(){
+  const t=T[lang];
+  const questions=t.triage[selectedType]||[];
+  const container=document.getElementById('triage-questions');
+  container.innerHTML='';
+  questions.forEach(q=>{
+    const qDiv=document.createElement('div');
+    qDiv.className='triage-q';
+    qDiv.innerHTML=`<label>${q.label}</label><div class="triage-options" id="opts-${q.id}"></div>`;
+    container.appendChild(qDiv);
+    const od=document.getElementById('opts-'+q.id);
+    q.opts.forEach(opt=>{
+      const btn=document.createElement('button');
+      btn.className='triage-opt'+(triageAnswers[q.id]===opt?' selected':'');
+      btn.textContent=opt;
+      btn.onclick=()=>selectOpt(q.id,opt,questions);
+      od.appendChild(btn);
+    });
+  });
+  checkTriageComplete(questions);
+}
+function selectOpt(qId,opt,questions){
+  triageAnswers[qId]=opt;
+  renderTriage();
+  checkTriageComplete(questions);
+}
+function checkTriageComplete(questions){
+  document.getElementById('triage-submit').disabled=!questions.every(q=>triageAnswers[q.id]);
+}
+
+async function submitTriage(){
+  document.getElementById('recovery-panel').classList.add('active');
+  setTimeout(()=>document.getElementById('recovery-panel').scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+  document.getElementById('triage-submit').disabled=true;
+  const t=T[lang];
+  document.getElementById('recovery-body').innerHTML=`<div class="loading-msg"><div class="spinner"></div><span>${t.loadingText}</span></div>`;
+
+  const attackName=T[lang].attackTypes.find(a=>a.key===selectedType)?.name||selectedType;
+  const answersText=Object.entries(triageAnswers).map(([k,v])=>`${k}: ${v}`).join('\n');
+
+  const prompts={
+    en:`You are CERA+, a cyber emergency assistant for Nepal. A user reports: Attack type: ${attackName}\nAnswers:\n${answersText}\n\nReturn ONLY valid JSON like this (no markdown, no extra text):\n{"severity":"high|medium|low","steps":[{"title":"Short action title","detail":"Clear simple explanation in plain English"}],"reportingScript":"Exact plain words to say when calling Nepal Cyber Bureau 1166 or bank","nepaliContacts":"Cyber Bureau: 1166 | Nepal Police: 100 | NRB: 01-4419804"}`,
+    ne:`तपाईं CERA+ हुनुहुन्छ — नेपालको लागि साइबर आपतकालीन सहायक। आक्रमण: ${attackName}\nजवाफ:\n${answersText}\n\nयो JSON मात्र फर्काउनुहोस् (कुनै markdown वा अतिरिक्त टेक्स्ट नलेख्नुहोस्):\n{"severity":"high|medium|low","steps":[{"title":"छोटो शीर्षक","detail":"सरल नेपालीमा व्याख्या"}],"reportingScript":"साइबर ब्युरो 1166 वा बैंकलाई फोन गर्दा सोझो भाषामा के भन्ने","nepaliContacts":"साइबर ब्युरो: 1166 | Nepal Police: 100 | NRB: 01-4419804"}`,
+    ro:`Tapai CERA+ hunuhunchha — Nepal ko lagi cyber emergency assistant. Attack: ${attackName}\nJawaaf:\n${answersText}\n\nYo JSON matra pharkaainus (koi markdown wa thapeko text nalekhnuhos):\n{"severity":"high|medium|low","steps":[{"title":"Chhoto heading","detail":"Sajilo Romanized Nepali ma vyaakhyaa"}],"reportingScript":"Cyber Bureau 1166 wa bank lai phone gardaa sojho bhasama ke bhannus","nepaliContacts":"Cyber Bureau: 1166 | Nepal Police: 100 | NRB: 01-4419804"}`
+  };
+
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_API_KEY},
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompts[lang]||prompts.en}],temperature:0.3,max_tokens:1200})
+    });
+    const data=await res.json();
+    if(data.error){throw new Error(data.error.message);}
+    let raw=data.choices?.[0]?.message?.content||'';
+    raw=raw.replace(/```json|```/g,'').trim();
+    const plan=JSON.parse(raw);
+    currentPlan=plan;
+    renderRecovery(plan);
+    saveSession(plan);
+  }catch(e){
+    document.getElementById('recovery-body').innerHTML=`<p style="color:var(--red-400);font-size:14px;">Could not generate plan. Please check your API key in ⚙️ settings or check your internet connection.<br><small style="color:var(--gray-500)">${e.message}</small></p>`;
+  }
+}
+
+function renderRecovery(plan){
+  const t=T[lang];
+  steps=plan.steps||[];
+  const badge=document.getElementById('severity-badge');
+  badge.className='severity-badge';
+  if(plan.severity==='high'){badge.classList.add('severity-high');badge.textContent=t.severityHigh;}
+  else if(plan.severity==='medium'){badge.classList.add('severity-medium');badge.textContent=t.severityMed;}
+  else{badge.classList.add('severity-low');badge.textContent=t.severityLow;}
+
+  let html=`<div class="steps-list" id="steps-list">`;
+  steps.forEach((s,i)=>{
+    html+=`<div class="step-item" id="step-${i}"><div class="step-num">${i+1}</div><div class="step-content"><div class="step-title">${s.title}</div><div class="step-detail">${s.detail}</div></div><button class="step-check" onclick="markStep(${i})">${t.markDone}</button></div>`;
+  });
+  html+=`</div>`;
+
+  if(plan.reportingScript){
+    html+=`<div class="script-box"><div class="script-label">${t.scriptLabel}</div><div class="script-text">${plan.reportingScript}</div><button class="copy-btn" onclick="copyScript(this,'${encodeURIComponent(plan.reportingScript)}')">${t.copyBtn}</button></div>`;
+  }
+  if(plan.nepaliContacts){
+    html+=`<div style="margin-top:1rem;padding:.75rem 1rem;background:rgba(0,0,0,.2);border-radius:10px;font-size:13px;color:var(--gray-200);">📞 ${plan.nepaliContacts}</div>`;
+  }
+  html+=`<div class="progress-bar-wrap"><div class="progress-label"><span>${t.progress}</span><span id="progress-count">0 / ${steps.length} ${t.stepsDone}</span></div><div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div></div>`;
+  document.getElementById('recovery-body').innerHTML=html;
+}
+
+function markStep(i){
+  const t=T[lang];
+  const el=document.getElementById('step-'+i);
+  el.classList.toggle('done');
+  el.querySelector('.step-check').textContent=el.classList.contains('done')?t.done:t.markDone;
+  updateProgress();
+  if(currentPlan) saveSession(currentPlan);
+}
+function updateProgress(){
+  const t=T[lang];
+  const done=document.querySelectorAll('.step-item.done').length;
+  const total=steps.length;
+  const pct=total?Math.round((done/total)*100):0;
+  const fill=document.getElementById('progress-fill');
+  const count=document.getElementById('progress-count');
+  if(fill)fill.style.width=pct+'%';
+  if(count)count.textContent=`${done} / ${total} ${t.stepsDone}`;
+}
+function copyScript(btn,encoded){
+  const t=T[lang];
+  navigator.clipboard.writeText(decodeURIComponent(encoded)).then(()=>{
+    btn.textContent=t.copied;setTimeout(()=>btn.textContent=t.copyBtn,2000);
+  });
+}
+
+// ── EVIDENCE ──
+function saveEvidence(){
+  const input=document.getElementById('ev-input');
+  const val=input.value.trim();
+  if(!val)return;
+  evidenceLog.push({text:val,time:new Date().toLocaleString()});
+  input.value='';
+  renderEvidence();
+}
+function renderEvidence(){
+  const list=document.getElementById('evidence-list');
+  list.innerHTML='';
+  evidenceLog.forEach(e=>{
+    const div=document.createElement('div');
+    div.className='evidence-item';
+    div.innerHTML=`<div>${e.text}</div><div class="ev-time">${e.time}</div>`;
+    list.prepend(div);
+  });
+}
+
+// ── SESSION HISTORY ──
+function saveSession(plan){
+  const attackName=T[lang].attackTypes.find(a=>a.key===selectedType)?.name||selectedType||'Unknown';
+  const doneCount=document.querySelectorAll('.step-item.done').length;
+  const existing=sessionHistory.findIndex(s=>s.sessionId===sessionId);
+  const entry={
+    sessionId,
+    date:new Date().toLocaleString(),
+    attackType:attackName,
+    attackKey:selectedType,
+    severity:plan.severity,
+    steps:plan.steps||[],
+    stepsCompleted:doneCount,
+    lang
+  };
+  if(existing>=0)sessionHistory[existing]=entry;
+  else sessionHistory.unshift(entry);
+  if(sessionHistory.length>20)sessionHistory=sessionHistory.slice(0,20);
+  localStorage.setItem('cera_history',JSON.stringify(sessionHistory));
+  renderHistory();
+}
+
+function renderHistory(){
+  const t=T[lang];
+  const list=document.getElementById('history-list');
+  if(!list)return;
+  document.getElementById('stat-sessions').textContent=sessionHistory.length;
+  const totalSteps=sessionHistory.reduce((a,s)=>a+s.stepsCompleted,0);
+  document.getElementById('stat-steps').textContent=totalSteps;
+  const scores=Object.values(quizScores);
+  const avgScore=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):0;
+  document.getElementById('stat-quiz').textContent=avgScore+'%';
+
+  if(sessionHistory.length===0){
+    list.innerHTML=`<div class="history-empty"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg><p>${t.histEmpty}</p></div>`;
+    return;
+  }
+  list.innerHTML='';
+  sessionHistory.forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.className='session-card';
+    const sevClass=s.severity==='high'?'sev-high':s.severity==='medium'?'sev-med':'sev-low';
+    const sevText=s.severity==='high'?t.severityHigh:s.severity==='medium'?t.severityMed:t.severityLow;
+    const stepsText=`${s.stepsCompleted}/${s.steps.length} ${t.stepsDone}`;
+    card.innerHTML=`
+      <div class="session-card-top">
+        <span class="session-type">${s.attackType}</span>
+        <span class="session-date">${s.date}</span>
+      </div>
+      <div class="session-meta">
+        <span class="session-tag ${sevClass}">${sevText}</span>
+        <span class="session-tag">🌐 ${s.lang||'en'}</span>
+      </div>
+      <div class="session-steps">${stepsText}</div>
+      <div class="session-detail" id="sd-${i}">
+        ${(s.steps||[]).map(st=>`<div class="session-detail-step">${st.title}</div>`).join('')}
+      </div>`;
+    card.onclick=()=>document.getElementById('sd-'+i).classList.toggle('open');
+    list.appendChild(card);
+  });
+}
+function clearHistory(){
+  if(!confirm('Clear all session history?'))return;
+  sessionHistory=[];
+  localStorage.removeItem('cera_history');
+  renderHistory();
+}
+
+// ── QUIZ ──
+function renderQuizCategories(){
+  const t=T[lang];
+  const c=document.getElementById('quiz-categories');
+  if(!c)return;
+  c.innerHTML='';
+  (t.quizCategories||[]).forEach(cat=>{
+    const div=document.createElement('div');
+    div.className='quiz-cat'+(currentQuiz.category===cat.key?' active-cat':'');
+    const scoreInfo=quizScores[cat.key]?` (${quizScores[cat.key]}%)`:'';
+    div.innerHTML=`<div>${getIcon(cat.icon)}</div><div class="quiz-cat-name">${cat.name}${scoreInfo}</div>`;
+    div.onclick=()=>startQuiz(cat.key);
+    c.appendChild(div);
+  });
+}
+function startQuiz(catKey){
+  const t=T[lang];
+  const questions=t.quiz?.[catKey]||[];
+  currentQuiz={category:catKey,questions:[...questions].sort(()=>Math.random()-.5),idx:0,score:0,answered:false};
+  renderQuizCategories();
+  document.getElementById('quiz-area').style.display='block';
+  renderQuizQuestion();
+  document.getElementById('quiz-area').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function renderQuizQuestion(){
+  const t=T[lang];
+  const {questions,idx,score}=currentQuiz;
+  if(idx>=questions.length){renderQuizResult();return;}
+  const q=questions[idx];
+  const area=document.getElementById('quiz-area');
+  const pct=Math.round((idx/questions.length)*100);
+  area.innerHTML=`
+    <div class="quiz-score-bar">
+      <div class="quiz-score-text"><span>${t.quizTitle}</span><span>${idx}/${questions.length}</span></div>
+      <div class="quiz-score-track"><div class="quiz-score-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="quiz-q-num">Question ${idx+1} of ${questions.length}</div>
+    <div class="quiz-question">${q.q}</div>
+    <div class="quiz-options" id="qopts">
+      ${q.opts.map((o,i)=>`<button class="quiz-opt" onclick="answerQuiz(${i})">${o}</button>`).join('')}
+    </div>
+    <div class="quiz-explanation" id="qexp">${q.exp}</div>
+    <div class="quiz-nav" id="qnav"></div>`;
+}
+function answerQuiz(chosenIdx){
+  const t=T[lang];
+  const q=currentQuiz.questions[currentQuiz.idx];
+  const opts=document.querySelectorAll('.quiz-opt');
+  opts.forEach((o,i)=>{
+    o.disabled=true;
+    if(i===q.correct)o.classList.add('correct');
+    else if(i===chosenIdx&&chosenIdx!==q.correct)o.classList.add('wrong');
+  });
+  if(chosenIdx===q.correct)currentQuiz.score++;
+  document.getElementById('qexp').classList.add('show');
+  const isLast=currentQuiz.idx>=currentQuiz.questions.length-1;
+  document.getElementById('qnav').innerHTML=`<button class="quiz-btn primary" onclick="${isLast?'finishQuiz()':'nextQuestion()'}">${isLast?t.quizFinish:t.quizNext}</button>`;
+}
+function nextQuestion(){
+  currentQuiz.idx++;
+  renderQuizQuestion();
+}
+function finishQuiz(){
+  const t=T[lang];
+  const {score,questions,category}=currentQuiz;
+  const pct=Math.round((score/questions.length)*100);
+  quizScores[category]=pct;
+  localStorage.setItem('cera_quiz_scores',JSON.stringify(quizScores));
+  renderQuizCategories();
+  const area=document.getElementById('quiz-area');
+  const emoji=pct>=80?'🏆':pct>=60?'👍':'📚';
+  const msg=pct>=80?'Excellent! You know how to stay safe.':pct>=60?'Good job! Keep learning.':'Keep practising — awareness saves you.';
+  area.innerHTML=`
+    <div class="score-result">
+      <div style="font-size:2.5rem;margin-bottom:.5rem;">${emoji}</div>
+      <div class="big-score">${pct}%</div>
+      <p>${score}/${questions.length} correct. ${msg}</p>
+      <button class="quiz-btn primary" style="margin-top:1rem;" onclick="startQuiz('${category}')">${t.quizRestart}</button>
+    </div>`;
+  renderHistory();
+}
+function renderQuizResult(){finishQuiz();}
+
+// ── CHAT ──
+let chatHistory=[];
+let chatBusy=false;
+function chatTime(){return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+function appendMsg(role,text){
+  const container=document.getElementById('chat-messages');
+  const typing=document.getElementById('chat-typing');
+  const div=document.createElement('div');
+  div.className='chat-msg '+role;
+  div.innerHTML=`<div class="chat-bubble">${text.replace(/\n/g,'<br>')}</div><div class="chat-time">${chatTime()}</div>`;
+  container.insertBefore(div,typing);
+  container.scrollTop=container.scrollHeight;
+}
+function setTyping(v){
+  document.getElementById('chat-typing').classList.toggle('visible',v);
+  document.getElementById('chat-status-text').textContent=v?'Typing...':'Ready to help';
+  document.getElementById('chat-send-btn').disabled=v;
+  chatBusy=v;
+  document.getElementById('chat-messages').scrollTop=99999;
+}
+function buildContext(){
+  const p=[];
+  if(selectedType)p.push(`Attack type: ${selectedType}`);
+  if(Object.keys(triageAnswers).length)p.push(`Triage: ${JSON.stringify(triageAnswers)}`);
+  if(steps.length)p.push(`Steps: ${steps.map(s=>s.title).join(', ')}`);
+  return p.length?'\nContext:\n'+p.join('\n'):'';
+}
+
+async function sendChat(){
+  if(chatBusy)return;
+  const input=document.getElementById('chat-input');
+  const text=input.value.trim();
+  if(!text)return;
+  input.value='';autoResize(input);
+  appendMsg('user',text);
+  chatHistory.push({role:'user',parts:[{text}]});
+  setTyping(true);
+
+  const systemNote=lang==='ne'
+    ?`तपाईं CERA+ Advisor हुनुहुन्छ — नेपालको लागि साइबर आपतकालीन सहायक। छोटो, स्पष्ट नेपालीमा मद्दत गर्नुहोस्।${buildContext()}`
+    :lang==='ro'
+    ?`Tapai CERA+ Advisor hunuhunchha — Nepal ko lagi cyber emergency assistant. Chhoto, sajilo Romanized Nepali ma maddat garnus.${buildContext()}`
+    :`You are CERA+ Advisor, a cyber emergency assistant for Nepal. Help with recovery, evidence, what to say to banks or Cyber Bureau (1166). Be warm, clear, and actionable. Never dismiss panic — users may be in crisis.${buildContext()}`;
+
+  const messages=[{role:'system',content:systemNote},...chatHistory.slice(-8).map(m=>({role:m.role==='model'?'assistant':m.role,content:m.parts[0].text}))];
+
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_API_KEY},
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',messages,temperature:0.6,max_tokens:600})
+    });
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    const reply=data.choices?.[0]?.message?.content||'Sorry, could not respond.';
+    chatHistory.push({role:'model',parts:[{text:reply}]});
+    setTyping(false);
+    appendMsg('bot',reply);
+  }catch(e){
+    setTyping(false);
+    appendMsg('bot','Connection error. Please check your internet and try again.');
+  }
+}
+function sendSuggestion(btn){document.getElementById('chat-input').value=btn.textContent;sendChat();}
+function chatKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+function toggleChat(){
+  const panel=document.getElementById('chat-panel');
+  const fab=document.getElementById('chat-fab');
+  const notif=document.getElementById('chat-notif');
+  const isOpen=panel.classList.contains('open');
+  panel.classList.toggle('open');
+  fab.classList.toggle('open');
+  if(!isOpen){notif.style.display='none';document.getElementById('chat-input').focus();}
+}
+
+// ── RESET ──
+function resetAll(){
+  selectedType=null;triageAnswers={};steps=[];evidenceLog=[];currentPlan=null;
+  document.getElementById('type-section').style.display='none';
+  document.getElementById('triage-panel').classList.remove('active');
+  document.getElementById('recovery-panel').classList.remove('active');
+  document.getElementById('evidence-panel').classList.remove('active');
+  document.getElementById('attack-btn').style.background='';
+  document.getElementById('attack-btn').onclick=onAttackClick;
+  document.getElementById('evidence-list').innerHTML='';
+  document.getElementById('ev-input').value='';
+  sessionId=Date.now().toString();
+}
+
+// ── SESSION ID ──
+let sessionId=Date.now().toString();
+
+// ── INIT ──
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    appendMsg('bot',"Hi! I'm your CERA+ Advisor. I'm here to help you through every step — ask me anything about your situation, what to do next, or how to use this tool.");
+    const notif=document.getElementById('chat-notif');
+    if(notif)notif.style.display='block';
+  },1200);
+});
+</script>
+</body>
+</html>
